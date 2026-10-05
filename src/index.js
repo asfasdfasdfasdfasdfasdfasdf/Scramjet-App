@@ -4,10 +4,17 @@ import { hostname } from "node:os";
 import { server as wisp, logging } from "@mercuryworkshop/wisp-js/server";
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
+import dns from "node:dns"; // 1. Imported Node's native DNS module
 
 import { scramjetPath } from "@mercuryworkshop/scramjet/path";
 import { libcurlPath } from "@mercuryworkshop/libcurl-transport";
 import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
+
+// 2. Force Node's internal network engine to prefer IPv6 (AAAA records) globally
+if (dns.setDefaultResultOrder) {
+	dns.setDefaultResultOrder('ipv6first');
+	console.log("🚀 Global Network: Prioritizing IPv6 outbound routes.");
+}
 
 const publicPath = fileURLToPath(new URL("../public/", import.meta.url));
 
@@ -17,7 +24,8 @@ logging.set_level(logging.NONE);
 Object.assign(wisp.options, {
 	allow_udp_streams: false,
 	hostname_blacklist: [/example\.com/],
-	dns_servers: ["1.1.1.3", "1.0.0.3"],
+	// 3. Replaced Cloudflare's malware-blocking IPv4 DNS with Cloudflare's standard IPv6 DNS servers
+	dns_servers: ["2606:4700:4700::1111", "2606:4700:4700::1001"],
 });
 
 const fastify = Fastify({
@@ -72,7 +80,7 @@ fastify.server.on("listening", () => {
 	console.log(`\thttp://${hostname()}:${address.port}`);
 	console.log(
 		`\thttp://${
-			address.family === "IPv6" ? `[${address.address}]` : address.address
+			address.family === "IPv6" ? `[\${address.address}]` : address.address
 		}:${address.port}`
 	);
 });
