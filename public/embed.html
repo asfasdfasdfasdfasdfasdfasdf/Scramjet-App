@@ -1,42 +1,75 @@
-<!DOCTYPE html>
+<!DOCTYPEdoctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embedded Player</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scramjet Player</title>
     <style>
-        /* Force a clean, borderless, fullscreen cinematic view */
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            width: 100%; 
-            height: 100%; 
-            overflow: hidden; 
-            background-color: #000; 
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            font-family: sans-serif;
         }
-        iframe { 
-            width: 100%; 
-            height: 100%; 
-            border: none; 
+        .nav-bar {
+            background: #111;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .back-btn {
+            background: #ff0000;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .back-btn:hover { background: #cc0000; }
+        .video-container {
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
     </style>
 </head>
 <body>
-    <iframe id="player" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+
+    <div class="nav-bar">
+        <a class="back-btn" href="/">⬅ Return to Home</a>
+    </div>
+
+    <div class="video-container" id="player-zone">
+        <!-- The embed frame will inject here dynamically -->
+    </div>
 
     <script>
-        // Read the extracted video parameter passed from the Service Worker routing hook
-        const urlParams = new URLSearchParams(window.location.search);
-        const videoId = urlParams.get('v');
+        // Extract the raw video identity parameter from the browser window's query location
+        const params = new URLSearchParams(window.location.search);
+        const videoId = params.get('v');
+        const container = document.getElementById('player-zone');
 
-        if (videoId) {
-            // Apply YouTube's lightweight embed link framework directly
-            document.getElementById('player').src = `https://youtube.com{videoId}?autoplay=1&rel=0`;
+        if (videoId && /^[a-zA-Z0-9_-]{11}\$/.test(videoId)) {
+            // Build a clean official embed frame layout that forces unauthenticated streaming
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://youtube.com{videoId}?autoplay=1&modestbranding=1&rel=0`;
+            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+            iframe.allowFullscreen = true;
+            container.appendChild(iframe);
         } else {
-            document.body.innerHTML = `
-                <div style="color: #ff4d4d; font-family: sans-serif; text-align: center; margin-top: 20%;">
-                    <h3>Error: No valid YouTube Video ID detected.</h3>
-                </div>`;
+            container.innerHTML = `<div style="color: white; text-align: center; margin-top: 20%; font-size: 1.2rem;">Invalid or missing video signature.</div>`;
         }
     </script>
 </body>
