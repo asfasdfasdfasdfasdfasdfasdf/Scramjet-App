@@ -8,12 +8,12 @@
 		"node": ">=16.0.0"
 	},
 	"scripts": {
-  "install-deps": "pnpm i",
-  "build:rewriter": "cd packages/core && pnpm rewriter:build",
-  "build:app": "pnpm build",
-  "render-build": "pnpm install && cd packages/core && pnpm rewriter:build && cd ../.. && pnpm build",
-  "start": "node src/index.js" 
-}
+		"install-deps": "pnpm i",
+		"build:rewriter": "cd packages/core && pnpm rewriter:build",
+		"build:app": "pnpm build",
+		"render-build": "pnpm install && cd packages/core && pnpm rewriter:build && cd ../.. && pnpm build",
+		"start": "node src/index.js" 
+	},
 	"keywords": [
 		"proxy"
 	],
