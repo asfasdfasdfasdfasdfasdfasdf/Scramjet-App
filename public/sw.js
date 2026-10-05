@@ -3,25 +3,16 @@ importScripts("/scram/scramjet.all.js");
 const { ScramjetServiceWorker } = \$scramjetLoadWorker();
 const scramjet = new ScramjetServiceWorker();
 
-// Extract YouTube Video ID after Scramjet decodes the URL layout
-function getYoutubeVideoId(decodedUrlStr) {
+// Extract YouTube Video ID ONLY if it is a Short
+function getYoutubeShortsId(decodedUrlStr) {
     try {
         const url = new URL(decodedUrlStr);
         
-        // Match standard watch URLs (://youtube.com)
-        if (url.hostname.includes('youtube.com') && url.pathname === '/watch') {
-            return url.searchParams.get('v');
-        }
-        
-        // Match mobile shorts URLs (://youtube.com)
+        // Target only mobile/desktop shorts URLs (e.g., ://youtube.com)
         if (url.hostname.includes('youtube.com') && url.pathname.startsWith('/shorts/')) {
             const parts = url.pathname.split('/');
+            // parts[0] is "", parts[1] is "shorts", parts[2] is the video ID
             return parts[2] || null;
-        }
-        
-        // Match short links (youtu.be/ID)
-        if (url.hostname === 'youtu.be') {
-            return url.pathname.substring(1);
         }
     } catch (e) {
         return null;
@@ -39,13 +30,14 @@ async function handleRequest(event) {
         try {
             // Use Scramjet's built-in codec to extract the literal destination URL string
             const decodedUrlStr = scramjet.codec.decode(scramjet.stripPrefix(requestUrl));
-            const videoId = getYoutubeVideoId(decodedUrlStr);
+            const videoId = getYoutubeShortsId(decodedUrlStr);
 
-            // If a YouTube video watch path is caught, immediately hot-swap the stream
-            // to load the clean embed endpoint inside the proxy structure automatically.
+            // If a YouTube Short path is caught, seamlessly convert it to a standard watch page
             if (videoId) {
-                const proxiedEmbedUrl = `https://youtube.com{videoId}`;
-                const newRequest = new Request(scramjet.prefix + scramjet.codec.encode(proxiedEmbedUrl), {
+                // FIXED: Converts Shorts to watch layout and appends the force autoplay instruction
+                const proxiedWatchUrl = `https://youtube.com{videoId}&autoplay=1`;
+                
+                const newRequest = new Request(scramjet.prefix + scramjet.codec.encode(proxiedWatchUrl), {
                     method: event.request.method,
                     headers: event.request.headers,
                     credentials: event.request.credentials
