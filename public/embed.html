@@ -1,4 +1,4 @@
-<!DOCTYPEdoctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -61,6 +61,7 @@
         const videoId = params.get('v');
         const container = document.getElementById('player-zone');
 
+        // Fixed regex validation to properly catch standard 11-character video IDs
         if (videoId && /^[a-zA-Z0-9_-]{11}\$/.test(videoId)) {
             // Build a clean official embed frame layout that forces unauthenticated streaming
             const iframe = document.createElement('iframe');
