@@ -8,11 +8,12 @@
 		"node": ">=16.0.0"
 	},
 	"scripts": {
-		"start": "node src/index.js",
-		"format": "prettier --write .",
-		"lint": "eslint ./src/",
-		"lint:fix": "eslint ./src/ --fix"
-	},
+  "install-deps": "pnpm i",
+  "build:rewriter": "cd packages/core && pnpm rewriter:build",
+  "build:app": "pnpm build",
+  "render-build": "pnpm install && cd packages/core && pnpm rewriter:build && cd ../.. && pnpm build",
+  "start": "node src/index.js" 
+}
 	"keywords": [
 		"proxy"
 	],
