@@ -41,13 +41,16 @@ async function handleRequest(event) {
             const decodedUrlStr = scramjet.codec.decode(scramjet.stripPrefix(requestUrl));
             const videoId = getYoutubeVideoId(decodedUrlStr);
 
-            // If a YouTube video watch path is caught, break the iframe container 
-            // and pass the clean video ID to your native client player page
+            // If a YouTube video watch path is caught, immediately hot-swap the stream
+            // to load the clean embed endpoint inside the proxy structure automatically.
             if (videoId) {
-                return new Response(
-                    `<html><script>window.parent.location.href = "/embed.html?v=${videoId}";</script></html>`,
-                    { headers: { "Content-Type": "text/html" } }
-                );
+                const proxiedEmbedUrl = `https://youtube.com{videoId}`;
+                const newRequest = new Request(scramjet.prefix + scramjet.codec.encode(proxiedEmbedUrl), {
+                    method: event.request.method,
+                    headers: event.request.headers,
+                    credentials: event.request.credentials
+                });
+                return scramjet.fetch(newRequest);
             }
         } catch (err) {
             console.error("Failed to decode proxy path:", err);
