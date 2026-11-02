@@ -20,4 +20,6 @@ COPY . .
 
 ENTRYPOINT [ "node" ]
 # FIX: Adjusted to launch 'index.js' in the root folder instead of 'src/index.js'
-CMD ["index.js"]
+# Change the last line from CMD ["index.js"] to:
+CMD ["src/index.js"]
+
