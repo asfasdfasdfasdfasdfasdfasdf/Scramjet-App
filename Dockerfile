@@ -10,11 +10,14 @@ LABEL description="Example application of Scramjet"
 
 WORKDIR /app
 
-COPY ["package.json", "package-lock.json", "./"]
+# FIX: Allow the build to pass even if package-lock.json doesn't exist locally
+COPY package*.json ./
+
 RUN apk add --upgrade --no-cache python3 make g++
 RUN $NPM_BUILD
 
 COPY . .
 
 ENTRYPOINT [ "node" ]
-CMD ["src/index.js"]
+# FIX: Adjusted to launch 'index.js' in the root folder instead of 'src/index.js'
+CMD ["index.js"]
