@@ -29,12 +29,28 @@ const fastify = Fastify({
 				handler(req, res);
 			})
 			.on("upgrade", (req, socket, head) => {
-				if (req.url.endsWith("/wisp/")) wisp.routeRequest(req, socket, head);
-				else socket.end();
+				if (req.url.endsWith("/wisp/")) {
+					wisp.routeRequest(req, socket, head);
+					
+					// HEARTBEAT: Sends an empty frame every 25 seconds 
+					// This forces Railway's network tier to keep the connection alive
+					const heartbeat = setInterval(() => {
+						if (socket.writable) {
+							socket.write(Buffer.alloc(0)); 
+						} else {
+							clearInterval(heartbeat);
+						}
+					}, 25000);
+					
+					socket.on("close", () => clearInterval(heartbeat));
+					socket.on("error", () => clearInterval(heartbeat));
+				} else {
+					socket.end();
+				}
 			});
 
-		// FIX: Prevent Node from prematurely dropping idle Wisp WebSocket/HTTP connections
-		// Sets timeouts to 1 hour (in milliseconds) to keep Claude sessions alive
+		// FIX: Prevent Node from prematurely dropping idle connections
+		// Sets internal Node timeouts to 1 hour (in milliseconds)
 		server.keepAliveTimeout = 3600000; 
 		server.headersTimeout = 3610000;   
 		server.timeout = 3600000;          
