@@ -11,7 +11,7 @@ import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
 
 const publicPath = fileURLToPath(new URL("../public/", import.meta.url));
 
-// Wisp Configuration: Refer to the documentation at https://www.npmjs.com/package/@mercuryworkshop/wisp-js
+// Wisp Configuration: Refer to the documentation at https://npmjs.com
 
 logging.set_level(logging.NONE);
 Object.assign(wisp.options, {
@@ -22,7 +22,7 @@ Object.assign(wisp.options, {
 
 const fastify = Fastify({
 	serverFactory: (handler) => {
-		return createServer()
+		const server = createServer()
 			.on("request", (req, res) => {
 				res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
 				res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
@@ -32,6 +32,14 @@ const fastify = Fastify({
 				if (req.url.endsWith("/wisp/")) wisp.routeRequest(req, socket, head);
 				else socket.end();
 			});
+
+		// FIX: Prevent Node from prematurely dropping idle Wisp WebSocket/HTTP connections
+		// Sets timeouts to 1 hour (in milliseconds) to keep Claude sessions alive
+		server.keepAliveTimeout = 3600000; 
+		server.headersTimeout = 3610000;   
+		server.timeout = 3600000;          
+
+		return server;
 	},
 });
 
